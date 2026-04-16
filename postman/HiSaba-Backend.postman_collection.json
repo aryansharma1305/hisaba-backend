@@ -1,0 +1,231 @@
+{
+  "info": {
+    "_postman_id": "a1a3f184-98d3-4d3f-94da-6b7f62a6a91e",
+    "name": "HiSaba Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Root",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url_no_api}}/"
+          }
+        },
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url_no_api}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aryan Sharma\",\n  \"email\": \"aryan@example.com\",\n  \"phone\": \"+919999999999\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": "{{base_url}}/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"aryan@example.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": "{{base_url}}/auth/login"
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "item": [
+        {
+          "name": "List Transactions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/transactions?page=1&limit=20&type=debit"
+          }
+        },
+        {
+          "name": "Get Transaction By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/transactions/{{transaction_id}}"
+          }
+        },
+        {
+          "name": "Create Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"merchantName\": \"Swiggy\",\n  \"amount\": 842,\n  \"type\": \"debit\",\n  \"category\": \"Food & Dining\",\n  \"paymentMode\": \"UPI\",\n  \"transactionDate\": \"2026-04-14T12:30:00.000Z\",\n  \"source\": \"manual\",\n  \"referenceId\": \"UPI123ABC\",\n  \"notes\": \"Lunch\"\n}"
+            },
+            "url": "{{base_url}}/transactions"
+          }
+        },
+        {
+          "name": "Bulk Create Transactions",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"merchantName\": \"Amazon\",\n    \"amount\": 2499,\n    \"type\": \"debit\",\n    \"category\": \"Shopping\",\n    \"paymentMode\": \"Card\",\n    \"transactionDate\": \"2026-04-14T10:00:00.000Z\",\n    \"source\": \"sms\"\n  },\n  {\n    \"merchantName\": \"Salary\",\n    \"amount\": 85000,\n    \"type\": \"credit\",\n    \"category\": \"Income\",\n    \"paymentMode\": \"Bank Transfer\",\n    \"transactionDate\": \"2026-04-01T05:00:00.000Z\",\n    \"source\": \"manual\"\n  }\n]"
+            },
+            "url": "{{base_url}}/transactions/bulk"
+          }
+        },
+        {
+          "name": "Update Transaction",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Groceries\",\n  \"notes\": \"Updated category\"\n}"
+            },
+            "url": "{{base_url}}/transactions/{{transaction_id}}"
+          }
+        },
+        {
+          "name": "Delete Transaction",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/transactions/{{transaction_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard & Insights",
+      "item": [
+        {
+          "name": "Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/dashboard/summary"
+          }
+        },
+        {
+          "name": "Insights",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/insights"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Budgets",
+      "item": [
+        {
+          "name": "List Budgets",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/budgets"
+          }
+        },
+        {
+          "name": "Upsert Budget",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Food & Dining\",\n  \"monthlyLimit\": 15000\n}"
+            },
+            "url": "{{base_url}}/budgets"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscriptions",
+      "item": [
+        {
+          "name": "List Subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/subscriptions"
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"merchantName\": \"Netflix\",\n  \"amount\": 649,\n  \"billingCycle\": \"monthly\",\n  \"nextBillingDate\": \"2026-05-01T00:00:00.000Z\"\n}"
+            },
+            "url": "{{base_url}}/subscriptions"
+          }
+        },
+        {
+          "name": "Cancel Subscription",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/subscriptions/{{subscription_id}}/cancel"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "https://hisaba-backend.fly.dev/api" },
+    { "key": "base_url_no_api", "value": "https://hisaba-backend.fly.dev" },
+    { "key": "token", "value": "" },
+    { "key": "transaction_id", "value": "" },
+    { "key": "subscription_id", "value": "" }
+  ]
+}

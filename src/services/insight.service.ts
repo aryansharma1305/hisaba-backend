@@ -1,6 +1,18 @@
 import prisma from '../lib/prisma';
 
 export const getInsights = async (userId: string) => {
+  const genericMerchantNames = new Set([
+    'unknown merchant',
+    'withdrawal / debit',
+    'withdrawal debit',
+    'bank debit',
+    'bank credit',
+    'deposit / credit',
+    'upi transfer',
+    'card spend',
+    'cash withdrawal',
+  ]);
+
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfWeek = new Date(now);
@@ -34,7 +46,10 @@ export const getInsights = async (userId: string) => {
       categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + amt;
       
       // Merchant totals
-      merchantTotals[tx.merchantName] = (merchantTotals[tx.merchantName] || 0) + amt;
+      const normalizedMerchant = String(tx.merchantName || '').trim().toLowerCase();
+      if (normalizedMerchant && !genericMerchantNames.has(normalizedMerchant)) {
+        merchantTotals[tx.merchantName] = (merchantTotals[tx.merchantName] || 0) + amt;
+      }
 
       // Weekly trend
       if (tx.transactionDate >= startOfWeek) {

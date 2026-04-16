@@ -50,6 +50,16 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// ── Root route ──────────────────────────────────────────
+app.get('/', (_req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: 'Hisaba backend is running.',
+    health: '/health',
+    apiBase: '/api',
+  });
+});
+
 // ── API Routes ─────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/transactions', authMiddleware, transactionRoutes);

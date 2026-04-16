@@ -75,3 +75,12 @@ export const deleteTransaction = async (id: string, userId: string) => {
   if (!tx) return null;
   return prisma.transaction.delete({ where: { id } });
 };
+
+export const deleteTransactionsBySource = async (userId: string, source: string) => {
+  return prisma.transaction.deleteMany({
+    where: {
+      userId,
+      source,
+    },
+  });
+};

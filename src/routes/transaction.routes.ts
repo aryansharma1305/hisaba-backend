@@ -6,11 +6,13 @@ import {
   createBulkTransactions,
   updateTransaction,
   deleteTransaction,
+  deleteSmsTransactions,
 } from '../controllers/transaction.controller';
 
 const router = Router();
 
 router.get('/', listTransactions);
+router.delete('/source/sms', deleteSmsTransactions);
 router.get('/:id', getTransaction);
 router.post('/', createTransaction);
 router.post('/bulk', createBulkTransactions);

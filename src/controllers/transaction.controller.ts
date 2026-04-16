@@ -80,3 +80,13 @@ export const deleteTransaction = async (req: Request, res: Response, next: NextF
     res.json(successResponse(null, 'Transaction deleted'));
   } catch (err) { next(err); }
 };
+
+export const deleteSmsTransactions = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = (req as any).userId;
+    if (!userId) throw new AppError('Unauthorized', 401);
+
+    const result = await txService.deleteTransactionsBySource(userId, 'sms');
+    res.json(successResponse(result, `${result.count} SMS transactions deleted`));
+  } catch (err) { next(err); }
+};
