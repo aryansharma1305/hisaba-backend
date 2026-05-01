@@ -3,7 +3,15 @@ import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma';
 import { RegisterInput, LoginInput } from '../utils/validators/auth.validator';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'hisaba-super-secret-key-change-in-prod';
+const getJwtSecret = () => {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET must be set in production');
+  }
+  return 'hisaba-dev-only-jwt-secret';
+};
+
+const JWT_SECRET = getJwtSecret();
 const JWT_EXPIRES_IN = '30d';
 
 export const registerUser = async (data: RegisterInput) => {

@@ -10,6 +10,7 @@ import dashboardRoutes from './routes/dashboard.routes';
 import insightRoutes from './routes/insight.routes';
 import budgetRoutes from './routes/budget.routes';
 import subscriptionRoutes from './routes/subscription.routes';
+import seedRoutes from './routes/seed.routes';
 import { errorHandler } from './middleware/errorHandler';
 import { authMiddleware } from './middleware/auth.middleware';
 
@@ -17,16 +18,28 @@ dotenv.config();
 
 const app: Application = express();
 
-const allowedOrigins = (process.env.CORS_ORIGINS || '*').split(',');
+const allowedOrigins = (process.env.CORS_ORIGINS || '*')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 // ── Middleware ─────────────────────────────────────────
 app.use(cors({
   origin: allowedOrigins.includes('*') ? '*' : allowedOrigins,
-  credentials: true,
+  credentials: !allowedOrigins.includes('*'),
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev'));
+app.use(express.json({ limit: '256kb' }));
+app.use(express.urlencoded({ extended: true, limit: '256kb' }));
+app.disable('x-powered-by');
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
+if (process.env.NODE_ENV !== 'production') {
+  app.use(morgan('dev'));
+}
 
 // ── Rate Limiting ──────────────────────────────────────
 const limiter = rateLimit({
@@ -67,6 +80,7 @@ app.use('/api/dashboard', authMiddleware, dashboardRoutes);
 app.use('/api/insights', authMiddleware, insightRoutes);
 app.use('/api/budgets', authMiddleware, budgetRoutes);
 app.use('/api/subscriptions', authMiddleware, subscriptionRoutes);
+app.use('/api/seed', authMiddleware, seedRoutes);
 
 // ── 404 handler ────────────────────────────────────────
 app.use((_req: Request, res: Response) => {

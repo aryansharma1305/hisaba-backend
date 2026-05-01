@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import * as txService from '../services/transaction.service';
 import {
+  createTransactionRequestSchema,
   createTransactionSchema,
   updateTransactionSchema,
+  listTransactionQuerySchema,
   listTransactionSchema,
 } from '../utils/validators/transaction.validator';
 import { successResponse, paginatedResponse } from '../utils/response';
@@ -12,8 +14,8 @@ export const listTransactions = async (req: Request, res: Response, next: NextFu
   try {
     const userId = (req as any).userId;
     if (!userId) throw new AppError('Unauthorized', 401);
-    req.query.userId = userId;
-    const params = listTransactionSchema.parse({ ...req.query });
+    const query = listTransactionQuerySchema.parse(req.query);
+    const params = listTransactionSchema.parse({ ...query, userId });
     const { transactions, total } = await txService.listTransactions(params);
     res.json(paginatedResponse(transactions, total, params.page, params.limit));
   } catch (err) { next(err); }
@@ -34,8 +36,8 @@ export const createTransaction = async (req: Request, res: Response, next: NextF
   try {
     const userId = (req as any).userId;
     if (!userId) throw new AppError('Unauthorized', 401);
-    req.body.userId = userId;
-    const data = createTransactionSchema.parse(req.body);
+    const payload = createTransactionRequestSchema.parse(req.body);
+    const data = createTransactionSchema.parse({ ...payload, userId });
     const tx = await txService.createTransaction(data);
     res.status(201).json(successResponse(tx, 'Transaction created'));
   } catch (err) { next(err); }
@@ -49,12 +51,34 @@ export const createBulkTransactions = async (req: Request, res: Response, next: 
     if (!Array.isArray(items) || items.length === 0) {
       throw new AppError('Request body must be a non-empty array', 400);
     }
-    const parsed = items.map((item: any) => {
-      item.userId = userId;
-      return createTransactionSchema.parse(item);
-    });
+
+    // Use safeParse so one bad transaction doesn't kill the entire batch
+    const parsed: any[] = [];
+    const skipped: Array<{ index: number; error: string }> = [];
+
+    for (let i = 0; i < items.length; i++) {
+      const reqResult = createTransactionRequestSchema.safeParse(items[i]);
+      if (!reqResult.success) {
+        skipped.push({ index: i, error: reqResult.error.issues[0]?.message || 'Validation failed' });
+        continue;
+      }
+      const fullResult = createTransactionSchema.safeParse({ ...reqResult.data, userId });
+      if (!fullResult.success) {
+        skipped.push({ index: i, error: fullResult.error.issues[0]?.message || 'Validation failed' });
+        continue;
+      }
+      parsed.push(fullResult.data);
+    }
+
+    if (parsed.length === 0) {
+      throw new AppError(`All ${items.length} transactions failed validation`, 400);
+    }
+
     const result = await txService.createBulkTransactions(parsed);
-    res.status(201).json(successResponse(result, `${result.count} transactions created`));
+    res.status(201).json(successResponse(
+      { count: result.count, skipped: skipped.length },
+      `${result.count} transactions created${skipped.length ? `, ${skipped.length} skipped` : ''}`
+    ));
   } catch (err) { next(err); }
 };
 

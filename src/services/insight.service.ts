@@ -1,6 +1,7 @@
 import prisma from '../lib/prisma';
 
 export const getInsights = async (userId: string) => {
+  try {
   const genericMerchantNames = new Set([
     'unknown merchant',
     'withdrawal / debit',
@@ -136,4 +137,8 @@ export const getInsights = async (userId: string) => {
     categoryBreakdown,
     weeklyTrend,
   };
+  } catch (err) {
+    console.error('[InsightService] getInsights failed:', err);
+    throw err;
+  }
 };

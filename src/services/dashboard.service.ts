@@ -1,6 +1,7 @@
 import prisma from '../lib/prisma';
 
 export const getDashboardSummary = async (userId: string) => {
+  try {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
@@ -84,4 +85,8 @@ export const getDashboardSummary = async (userId: string) => {
     totalSubscriptionCost,
     transactionCount: allTx.length,
   };
+  } catch (err) {
+    console.error('[DashboardService] getDashboardSummary failed:', err);
+    throw err;
+  }
 };

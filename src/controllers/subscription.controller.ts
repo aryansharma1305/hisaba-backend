@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { getSubscriptions, createSubscription, cancelSubscription as cancelSub } from '../services/subscription.service';
-import { createSubscriptionSchema } from '../utils/validators/subscription.validator';
+import { createSubscriptionRequestSchema, createSubscriptionSchema } from '../utils/validators/subscription.validator';
 import { successResponse } from '../utils/response';
 import { AppError } from '../middleware/errorHandler';
 
@@ -17,8 +17,8 @@ export const addSubscription = async (req: Request, res: Response, next: NextFun
   try {
     const userId = (req as any).userId;
     if (!userId) throw new AppError('Unauthorized', 401);
-    req.body.userId = userId;
-    const data = createSubscriptionSchema.parse(req.body);
+    const payload = createSubscriptionRequestSchema.parse(req.body);
+    const data = createSubscriptionSchema.parse({ ...payload, userId });
     const sub = await createSubscription(data);
     res.status(201).json(successResponse(sub, 'Subscription added'));
   } catch (err) { next(err); }

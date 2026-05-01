@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { getBudgets, createBudget } from '../services/budget.service';
-import { createBudgetSchema } from '../utils/validators/budget.validator';
+import { createBudgetRequestSchema, createBudgetSchema } from '../utils/validators/budget.validator';
 import { successResponse } from '../utils/response';
 import { AppError } from '../middleware/errorHandler';
 
@@ -17,8 +17,8 @@ export const upsertBudget = async (req: Request, res: Response, next: NextFuncti
   try {
     const userId = (req as any).userId;
     if (!userId) throw new AppError('Unauthorized', 401);
-    req.body.userId = userId;
-    const data = createBudgetSchema.parse(req.body);
+    const payload = createBudgetRequestSchema.parse(req.body);
+    const data = createBudgetSchema.parse({ ...payload, userId });
     const budget = await createBudget(data);
     res.status(201).json(successResponse(budget, 'Budget saved'));
   } catch (err) { next(err); }

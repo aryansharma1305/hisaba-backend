@@ -17,7 +17,9 @@ primary_region = "ams"
   processes = ["app"]
 
 [deploy]
-release_command = "npx prisma db push"
+# release_command = "npx prisma db push"
+# ↑ Re-enable when you change the Prisma schema. Disabled because
+#   Fly.io (ams) cannot always reach Neon (us-east-1) during deploys.
 
 [[vm]]
   memory = "512mb"

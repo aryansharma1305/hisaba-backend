@@ -46,10 +46,26 @@ export const createTransaction = async (data: CreateTransactionInput) => {
 };
 
 export const createBulkTransactions = async (items: CreateTransactionInput[]) => {
+  const referenceIds = items
+    .map((item) => item.referenceId)
+    .filter((referenceId): referenceId is string => Boolean(referenceId));
+  const existingReferenceIds = referenceIds.length
+    ? await prisma.transaction.findMany({
+        where: {
+          userId: items[0]?.userId,
+          referenceId: { in: referenceIds },
+        },
+        select: { referenceId: true },
+      })
+    : [];
+  const existingSet = new Set(existingReferenceIds.map((item) => item.referenceId).filter(Boolean));
   const data = items.map((item) => ({
     ...item,
     transactionDate: new Date(item.transactionDate),
-  }));
+  })).filter((item) => !item.referenceId || !existingSet.has(item.referenceId));
+
+  if (!data.length) return { count: 0 };
+
   return prisma.transaction.createMany({ data, skipDuplicates: true });
 };
 
