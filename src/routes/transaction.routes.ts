@@ -11,11 +11,12 @@ import {
 
 const router = Router();
 
+// Specific routes MUST come before parameterised /:id routes
 router.get('/', listTransactions);
-router.delete('/source/sms', deleteSmsTransactions);
-router.get('/:id', getTransaction);
+router.post('/bulk', createBulkTransactions);          // ← must be before /:id
+router.delete('/source/sms', deleteSmsTransactions);   // ← must be before /:id
 router.post('/', createTransaction);
-router.post('/bulk', createBulkTransactions);
+router.get('/:id', getTransaction);
 router.patch('/:id', updateTransaction);
 router.delete('/:id', deleteTransaction);
 

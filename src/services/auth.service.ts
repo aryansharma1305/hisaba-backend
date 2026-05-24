@@ -66,3 +66,17 @@ export const getUserById = async (userId: string) => {
     select: { id: true, name: true, email: true, phone: true, createdAt: true },
   });
 };
+
+export const refreshUserToken = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, name: true, email: true, phone: true, createdAt: true },
+  });
+  if (!user) return null;
+
+  const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
+    expiresIn: JWT_EXPIRES_IN,
+  });
+
+  return { user, token };
+};

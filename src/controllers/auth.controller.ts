@@ -40,3 +40,15 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
     next(err);
   }
 };
+
+/** Refresh: validates current token and issues a fresh one */
+export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = (req as any).userId as string;
+    const result = await authService.refreshUserToken(userId);
+    if (!result) throw new AppError('User not found', 404);
+    res.json(successResponse(result, 'Token refreshed'));
+  } catch (err) {
+    next(err);
+  }
+};

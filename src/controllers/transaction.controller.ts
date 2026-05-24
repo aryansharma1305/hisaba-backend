@@ -17,6 +17,7 @@ export const listTransactions = async (req: Request, res: Response, next: NextFu
     const query = listTransactionQuerySchema.parse(req.query);
     const params = listTransactionSchema.parse({ ...query, userId });
     const { transactions, total } = await txService.listTransactions(params);
+    // Return array directly in `data` (paginatedResponse shape) — frontend reads data as array
     res.json(paginatedResponse(transactions, total, params.page, params.limit));
   } catch (err) { next(err); }
 };
@@ -51,27 +52,50 @@ export const createBulkTransactions = async (req: Request, res: Response, next: 
     if (!Array.isArray(items) || items.length === 0) {
       throw new AppError('Request body must be a non-empty array', 400);
     }
+    if (items.length > 500) {
+      throw new AppError('Bulk upload limit is 500 transactions per request', 400);
+    }
 
     // Use safeParse so one bad transaction doesn't kill the entire batch
     const parsed: any[] = [];
-    const skipped: Array<{ index: number; error: string }> = [];
+    const skipped: Array<{ index: number; error: string; preview?: string }> = [];
 
     for (let i = 0; i < items.length; i++) {
       const reqResult = createTransactionRequestSchema.safeParse(items[i]);
       if (!reqResult.success) {
-        skipped.push({ index: i, error: reqResult.error.issues[0]?.message || 'Validation failed' });
+        const errorMsg = reqResult.error.issues[0]?.message || 'Validation failed';
+        const field = reqResult.error.issues[0]?.path?.join('.') || 'unknown';
+        skipped.push({
+          index: i,
+          error: `${field}: ${errorMsg}`,
+          preview: String(items[i]?.merchantName ?? '').slice(0, 40),
+        });
         continue;
       }
       const fullResult = createTransactionSchema.safeParse({ ...reqResult.data, userId });
       if (!fullResult.success) {
-        skipped.push({ index: i, error: fullResult.error.issues[0]?.message || 'Validation failed' });
+        const errorMsg = fullResult.error.issues[0]?.message || 'Validation failed';
+        const field = fullResult.error.issues[0]?.path?.join('.') || 'unknown';
+        skipped.push({
+          index: i,
+          error: `${field}: ${errorMsg}`,
+          preview: String(items[i]?.merchantName ?? '').slice(0, 40),
+        });
         continue;
       }
       parsed.push(fullResult.data);
     }
 
     if (parsed.length === 0) {
-      throw new AppError(`All ${items.length} transactions failed validation`, 400);
+      // Return details about why everything failed instead of a generic error
+      throw new AppError(
+        `All ${items.length} transactions failed validation. First error: ${skipped[0]?.error ?? 'unknown'}`,
+        400
+      );
+    }
+
+    if (skipped.length > 0) {
+      console.warn(`[Bulk] ${skipped.length} items skipped validation:`, skipped.slice(0, 5));
     }
 
     const result = await txService.createBulkTransactions(parsed);
