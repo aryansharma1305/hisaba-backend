@@ -80,3 +80,8 @@ export const refreshUserToken = async (userId: string) => {
 
   return { user, token };
 };
+
+export const deleteUserAccount = async (userId: string) => {
+  await prisma.user.delete({ where: { id: userId } });
+  return { deleted: true };
+};

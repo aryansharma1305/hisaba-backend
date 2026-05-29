@@ -52,3 +52,13 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
     next(err);
   }
 };
+
+export const deleteMe = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = (req as any).userId as string;
+    await authService.deleteUserAccount(userId);
+    res.json(successResponse(null, 'Account deleted'));
+  } catch (err) {
+    next(err);
+  }
+};
